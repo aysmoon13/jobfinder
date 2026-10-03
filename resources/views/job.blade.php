@@ -91,10 +91,15 @@
                        </div>                                                                                         
                                                                                                                       
                        {{-- Apply Button --}}                                                                         
-                       <div class="mt-6">                                                                             
-                           <a href="{{ route('jobs.apply', $job->slug) }}" class="btn btn-primary btn-block text-lg"> 
-                               Apply Now                                                                              
-                           </a>                                                                                       
+                       <div class="mt-6">  
+                            @auth                                                                           
+                                <a href="{{ route('jobs.apply', $job->slug) }}" class="btn btn-primary btn-block text-lg"> 
+                                     Apply Now                                                                              
+                                </a>  
+                            @else
+                                <p class="text-sm text-gray-500 mb-2">Please Login to apply for this job</p>     
+                                <a href="{{ route('login') }}" class="btn btn-primary btn-block">Log In to Apply</a> 
+                            @endauth                                                                               
                        </div>                                                                                         
                                                                                                                       
                        <div class="mt-4">                                                                             

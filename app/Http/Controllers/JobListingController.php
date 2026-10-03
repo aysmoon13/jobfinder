@@ -191,7 +191,10 @@ public function update(Request $request,$id){
        
 
     public function storeApplication(Request $request, $slug)                                                          
-    {                                                                                                                  
+    {                                      
+        if(!auth()->check()){
+            return redirect()->route('login')->with('error','You must be logged in to apply for jobs.');
+        }                                                                            
         $validated = $request->validate([                                                                              
             'cover_letter' => 'nullable|string|max:1000',                                                              
             'resume' =>                                                                                                
