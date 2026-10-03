@@ -77,7 +77,7 @@ if ($request->hasFile('logo')) {
         'work_mode' => 'required|in:remote,onsite,hybrid',
 
         'salary_min' => 'nullable|numeric|min:0',
-        'salary_max' => 'nullable|numeric|min:0',
+        'salary_max' => 'nullable|numeric|gt:salary_min|min:0',
         'experience' => 'nullable|string|max:50',                                                                          
 
 
@@ -190,32 +190,41 @@ public function update(Request $request,$id){
     }                                                                                                                  
        
 
-    public function storeApplication(Request $request, $slug)                                                          
-    {                                      
-        if(!auth()->check()){
-            return redirect()->route('login')->with('error','You must be logged in to apply for jobs.');
-        }                                                                            
-        $validated = $request->validate([                                                                              
-            'cover_letter' => 'nullable|string|max:1000',                                                              
-            'resume' =>                                                                                                
-            'required|mimetypes:application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessing 
-            ml.document|max:2048',                                                                                               
-                ]);                                                                                                            
-                                                                                                                        
-        // Handle Resume Upload                                                                                        
-        $resumePath = $request->file('resume')->store('resumes', 'public');                                            
-                                                                                                                        
-        // Save Application                                                                                            
-        $application = JobApplication::create([                                                            
-            'user_id' => auth()->id(),                                                                                 
-            'job_listing_id' => JobListing::where('slug', $slug)->first()->id,                             
-            'cover_letter' => $validated['cover_letter'],                                                              
-            'resume_path' => $resumePath,                                                                              
-            'status' => 'pending',                                                                                     
-        ]);                                                                                                            
-                                                                                                                        
-        return redirect()->route('jobs.show', $slug)->with('success', 'Application submitted successfully!');          
-    } 
+    public function storeApplication(Request $request, $slug)
+    {
+        // Check if user is logged in
+        if (!auth()->check()) {
+            return redirect()->route('login')->with('error', 'You must be logged in to apply for jobs.');
+        }
+
+        // Fetch the job and its company
+        $job = JobListing::where('slug', $slug)->firstOrFail();
+        $company = $job->company;
+
+        // Prevent applying to your own job
+        if ($company->user_id === auth()->id()) {
+            return back()->with('error', 'You cannot apply for your own job listing.');
+        }
+
+        $validated = $request->validate([
+            'cover_letter' => 'nullable|string|max:1000',
+            'resume' => 'required|mimetypes:application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document|max:2048',
+        ]);
+
+        // Handle Resume Upload
+        $resumePath = $request->file('resume')->store('resumes', 'public');
+
+        // Save Application
+        $application = JobApplication::create([
+            'user_id' => auth()->id(),
+            'job_listing_id' => $job->id,
+            'cover_letter' => $validated['cover_letter'],
+            'resume_path' => $resumePath,
+            'status' => 'pending',
+        ]);
+
+        return redirect()->route('jobs.show', $slug)->with('success', 'Application submitted successfully!');
+    }
 
 
     public function showApplication($id)                                                                               

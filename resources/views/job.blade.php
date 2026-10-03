@@ -92,15 +92,19 @@
                                                                                                                       
                        {{-- Apply Button --}}                                                                         
                        <div class="mt-6">  
-                            @auth                                                                           
-                                <a href="{{ route('jobs.apply', $job->slug) }}" class="btn btn-primary btn-block text-lg"> 
-                                     Apply Now                                                                              
-                                </a>  
+                            @auth
+                                @if(auth()->id() === $job->company->user_id)
+                                     <p class="text-sm text-gray-500 mb-2">You cannot apply for your own job.</p>
+                                @else
+                                    <a href="{{ route('jobs.apply', $job->slug) }}" class="btn btn-primary btn-block text-lg"> 
+                                         Apply Now                                                                              
+                                    </a>  
+                                @endif 
                             @else
                                 <p class="text-sm text-gray-500 mb-2">Please Login to apply for this job</p>     
                                 <a href="{{ route('login') }}" class="btn btn-primary btn-block">Log In to Apply</a> 
-                            @endauth                                                                               
-                       </div>                                                                                         
+                            @endauth                                                                            
+                       </div>
                                                                                                                       
                        <div class="mt-4">                                                                             
                            <a href="{{ route('jobs.index') }}" class="btn btn-link text-sm">← Back to all jobs</a>    
